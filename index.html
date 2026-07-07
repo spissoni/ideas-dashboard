@@ -51,7 +51,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:6px;backgroun
 .sidebar-bottom{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:4px;}
 
 /* MAIN */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
 
 /* TOPBAR */
 .topbar{height:66px;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 28px;gap:14px;flex-shrink:0;}
@@ -71,7 +71,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:6px;backgroun
 #refreshIcon{font-family:var(--serif);font-size:13px;}
 
 /* CONTENT */
-.content{flex:1;overflow-y:auto;padding:26px 28px;display:flex;flex-direction:column;gap:22px;}
+.content{flex:1;overflow-y:auto;padding:26px 28px;display:flex;flex-direction:column;gap:22px;min-height:0;}
 .content::-webkit-scrollbar{width:9px;}
 .content::-webkit-scrollbar-thumb{background:var(--line);border-radius:0;border:3px solid var(--bg);}
 .content::-webkit-scrollbar-thumb:hover{background:var(--text3);}
@@ -259,6 +259,43 @@ td.idea-text span{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:ve
 
 @media(max-width:900px){.two-col{grid-template-columns:1fr;}.kpi-row{grid-template-columns:repeat(2,1fr);}.sidebar{display:none;}}
 @media(max-width:560px){.kpi-row{grid-template-columns:repeat(2,1fr);}.content{padding:16px;}.topbar{padding:0 16px;}.form-row{grid-template-columns:1fr;}}
+
+/* ── COMMENTS ── */
+.comment-cell{max-width:220px;}
+.comment-preview{font-family:var(--serif);font-size:12px;color:var(--text2);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;}
+.comment-preview:hover{color:var(--ink);}
+.comment-author{font-family:var(--mono);font-size:8.5px;color:var(--text3);margin-top:3px;}
+.comment-empty{font-family:var(--serif);font-size:11px;color:var(--text3);font-style:italic;cursor:pointer;}
+.comment-empty:hover{color:var(--text2);}
+
+/* COMMENT MODAL */
+.comment-modal{background:var(--paper);border:1px solid var(--line);border-radius:4px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 30px 80px -20px rgba(27,31,38,.4);animation:modalUp .26s cubic-bezier(.16,1,.3,1);max-height:85vh;display:flex;flex-direction:column;}
+.comment-modal-header{padding:18px 22px 14px;border-bottom:1px solid var(--line);position:relative;flex-shrink:0;}
+.comment-modal-eyebrow{font-family:var(--mono);text-transform:uppercase;letter-spacing:.16em;font-size:9px;color:var(--text3);display:block;margin-bottom:5px;}
+.comment-modal-title{font-family:var(--serif);font-size:17px;font-weight:500;color:var(--ink);line-height:1.3;}
+.comment-list{flex:1;overflow-y:auto;padding:16px 22px;}
+.comment-list::-webkit-scrollbar{width:6px;}
+.comment-list::-webkit-scrollbar-thumb{background:var(--line);}
+.comment-item{padding:12px 0;border-bottom:1px solid var(--line-soft);}
+.comment-item:last-child{border-bottom:none;}
+.comment-item-header{display:flex;align-items:baseline;gap:8px;margin-bottom:5px;}
+.comment-item-author{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:.08em;}
+.comment-item-time{font-family:var(--mono);font-size:8.5px;color:var(--text3);}
+.comment-item-text{font-family:var(--serif);font-size:13.5px;color:var(--ink);line-height:1.5;}
+.comment-empty-state{text-align:center;padding:32px;color:var(--text3);font-family:var(--serif);font-style:italic;}
+.comment-input-wrap{padding:14px 22px;border-top:1px solid var(--line);background:var(--paper2);flex-shrink:0;}
+.comment-input{width:100%;background:var(--field);border:1px solid var(--line);color:var(--ink);padding:10px 13px;border-radius:3px;font-size:13.5px;font-family:var(--serif);outline:none;resize:none;min-height:72px;line-height:1.5;transition:border-color .16s;}
+.comment-input:focus{border-color:var(--navy);background:var(--paper);}
+.comment-input::placeholder{color:var(--text3);font-style:italic;}
+.comment-input-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.comment-input-hint{font-family:var(--mono);font-size:8.5px;color:var(--text3);}
+.comment-send-btn{background:var(--navy);border:none;color:#fff;padding:8px 18px;border-radius:3px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;font-size:9.5px;font-weight:500;cursor:pointer;transition:background .15s;}
+.comment-send-btn:hover{background:var(--navy-deep);}
+.comment-send-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* TL comment event */
+.tl-event-comment{font-family:var(--serif);font-size:12px;color:var(--text);margin-top:3px;padding:6px 10px;background:var(--paper2);border-left:2px solid var(--line);border-radius:0 2px 2px 0;font-style:italic;}
+
 </style>
 </head>
 <body>
@@ -318,7 +355,7 @@ td.idea-text span{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:ve
         <div class="status-filters" id="sfRow"></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Idea</th><th>Categoría</th><th>Estado</th><th>Inicio</th><th>Fin</th><th></th></tr></thead>
+            <thead><tr><th>Idea</th><th>Categoría</th><th>Estado</th><th>Inicio</th><th>Fin</th><th>Último comentario</th><th></th></tr></thead>
             <tbody id="ideasBody"><tr class="loading-row"><td colspan="6">Cargando ideas</td></tr></tbody>
           </table>
         </div>
@@ -396,12 +433,40 @@ td.idea-text span{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:ve
   </div>
 </div>
 
+
+<!-- COMMENT MODAL -->
+<div class="modal-overlay" id="commentOverlay" onclick="handleCommentOverlayClick(event)">
+  <div class="comment-modal">
+    <div class="comment-modal-header">
+      <span class="comment-modal-eyebrow">Comentarios</span>
+      <div class="comment-modal-title" id="commentModalTitle"></div>
+      <button class="modal-close" onclick="closeCommentModal()" style="position:absolute;top:16px;right:18px">×</button>
+    </div>
+    <div class="comment-list" id="commentList">
+      <div class="comment-empty-state">Cargando comentarios...</div>
+    </div>
+    <div class="comment-input-wrap">
+      <textarea class="comment-input" id="commentInput" placeholder="Escribí un comentario..." rows="3"></textarea>
+      <div class="comment-input-footer">
+        <span class="comment-input-hint">Enter para nueva línea · Shift+Enter para enviar</span>
+        <button class="comment-send-btn" id="commentSendBtn" onclick="sendComment()">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
 const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vTgtLFICDgn1SfetEC4-OiBArhGBHJSPDemvh8LLJ1-22d20CGTV6seE5LeMefvk5pK12JU37znA5s8/pub?gid=0&single=true&output=csv';
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzQB-P3gUYncCLN9sftmDKvWSxfsaKvU8MbwDZsERtAJ-kZaa8fxYAQ3-G60rxlWPx36w/exec';
+
+
+// ── CLICKUP CONFIG ──
+const CLICKUP_API_KEY = 'pk_43073493_GXJTEDZ1QIOGPBW66T3T08OLLHWT0A3P'; // Settings → Apps → API Token
+const CLICKUP_LIST_ID = '1000440000002954';
+const CLICKUP_BASE = 'https://api.clickup.com/api/v2';
 
 const CAT_NAMES={p:'Proyectos clientes',c:'Clientes nuevos',x:'Empresa / producto',e:'Equipo',l:'Liderazgo',yo:'Personal',f:'Futsal / Kimberley',u:'UNSAM / Handball',v:'Ver / leer',general:'General'};
 const CAT_COLORS={p:'var(--cat-p)',c:'var(--cat-c)',x:'var(--cat-x)',e:'var(--cat-e)',l:'var(--cat-l)',yo:'var(--cat-yo)',f:'var(--cat-f)',u:'var(--cat-u)',v:'var(--cat-v)',general:'var(--cat-general)'};
@@ -547,6 +612,165 @@ function showToast(msg,type='success'){
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
+
+// ── CLICKUP COMMENTS ──
+let commentIdeaId = null;
+let cuTaskCache = {}; // ideaId → clickup task_id
+
+async function findOrCreateCUTask(idea){
+  if(cuTaskCache[idea.id]) return cuTaskCache[idea.id];
+  try{
+    // Search existing tasks by name
+    const searchRes = await fetch(`${CLICKUP_BASE}/list/${CLICKUP_LIST_ID}/task?query=${encodeURIComponent(idea.contenido.substring(0,50))}&limit=10`,{
+      headers:{'Authorization':CLICKUP_API_KEY,'Content-Type':'application/json'}
+    });
+    const searchData = await searchRes.json();
+    if(searchData.tasks && searchData.tasks.length > 0){
+      // Find exact match
+      const match = searchData.tasks.find(t => t.name === idea.contenido || t.name.startsWith(idea.contenido.substring(0,40)));
+      if(match){ cuTaskCache[idea.id]=match.id; return match.id; }
+    }
+    // Create new task
+    const createRes = await fetch(`${CLICKUP_BASE}/list/${CLICKUP_LIST_ID}/task`,{
+      method:'POST',
+      headers:{'Authorization':CLICKUP_API_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name: idea.contenido.substring(0,200),
+        description: `Categoría: ${CAT_NAMES[idea.prefijo]||idea.categoria}\nFecha: ${idea.fecha}`,
+        tags: [idea.prefijo||'general'],
+        status: 'to do'
+      })
+    });
+    const createData = await createRes.json();
+    if(createData.id){ cuTaskCache[idea.id]=createData.id; return createData.id; }
+  }catch(err){ console.error('CU task error',err); }
+  return null;
+}
+
+async function loadCUComments(taskId){
+  try{
+    const res = await fetch(`${CLICKUP_BASE}/task/${taskId}/comment`,{
+      headers:{'Authorization':CLICKUP_API_KEY}
+    });
+    const data = await res.json();
+    return data.comments || [];
+  }catch(err){ return []; }
+}
+
+async function postCUComment(taskId, text){
+  const res = await fetch(`${CLICKUP_BASE}/task/${taskId}/comment`,{
+    method:'POST',
+    headers:{'Authorization':CLICKUP_API_KEY,'Content-Type':'application/json'},
+    body: JSON.stringify({comment_text: text})
+  });
+  return await res.json();
+}
+
+function formatCUTime(ts){
+  try{
+    const d = new Date(parseInt(ts));
+    const day=d.getDate().toString().padStart(2,'0');
+    const mo=(d.getMonth()+1).toString().padStart(2,'0');
+    return `${day}/${mo}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+  }catch(e){ return ''; }
+}
+
+async function openCommentModal(ideaId, e){
+  e && e.stopPropagation();
+  commentIdeaId = ideaId;
+  const idea = allIdeas.find(i=>i.id===ideaId);
+  if(!idea) return;
+
+  document.getElementById('commentModalTitle').textContent = idea.contenido.length > 60 ? idea.contenido.substring(0,60)+'…' : idea.contenido;
+  document.getElementById('commentList').innerHTML = '<div class="comment-empty-state">Conectando con ClickUp...</div>';
+  document.getElementById('commentOverlay').classList.add('open');
+  document.getElementById('commentInput').value='';
+
+  if(CLICKUP_API_KEY === 'PEGA_TU_API_KEY_AQUI'){
+    document.getElementById('commentList').innerHTML = '<div class="comment-empty-state">⚠️ Configurá tu API Key de ClickUp en el archivo</div>';
+    return;
+  }
+
+  const taskId = await findOrCreateCUTask(idea);
+  if(!taskId){
+    document.getElementById('commentList').innerHTML = '<div class="comment-empty-state">No se pudo conectar con ClickUp</div>';
+    return;
+  }
+
+  const comments = await loadCUComments(taskId);
+  renderComments(comments);
+
+  // Store last comment for table preview
+  if(comments.length > 0){
+    const last = comments[comments.length-1];
+    if(!idea.lastComment) idea.lastComment = {};
+    idea.lastComment = {
+      text: last.comment_text || '',
+      author: last.user ? last.user.username : 'Seb',
+      time: formatCUTime(last.date)
+    };
+    renderAll();
+  }
+}
+
+function renderComments(comments){
+  const list = document.getElementById('commentList');
+  if(!comments.length){
+    list.innerHTML = '<div class="comment-empty-state">Sin comentarios todavía — sé el primero</div>';
+    return;
+  }
+  list.innerHTML = comments.map(c => `
+    <div class="comment-item">
+      <div class="comment-item-header">
+        <span class="comment-item-author">${c.user ? c.user.username : 'Seb'}</span>
+        <span class="comment-item-time">${formatCUTime(c.date)}</span>
+      </div>
+      <div class="comment-item-text">${(c.comment_text||'').replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+  list.scrollTop = list.scrollHeight;
+}
+
+async function sendComment(){
+  const text = document.getElementById('commentInput').value.trim();
+  if(!text || !commentIdeaId) return;
+  const btn = document.getElementById('commentSendBtn');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  const idea = allIdeas.find(i=>i.id===commentIdeaId);
+  const taskId = await findOrCreateCUTask(idea);
+  if(taskId){
+    await postCUComment(taskId, text);
+    document.getElementById('commentInput').value='';
+    const comments = await loadCUComments(taskId);
+    renderComments(comments);
+    // Update preview
+    if(comments.length > 0){
+      const last = comments[comments.length-1];
+      idea.lastComment = {
+        text: last.comment_text || '',
+        author: last.user ? last.user.username : 'Seb',
+        time: formatCUTime(last.date)
+      };
+      renderAll();
+    }
+    showToast('Comentario guardado en ClickUp','success');
+  } else {
+    showToast('Error al conectar con ClickUp','error');
+  }
+  btn.disabled = false; btn.textContent = 'Enviar';
+}
+
+function handleCommentOverlayClick(e){ if(e.target===document.getElementById('commentOverlay')) closeCommentModal(); }
+function closeCommentModal(){ document.getElementById('commentOverlay').classList.remove('open'); commentIdeaId=null; }
+
+// keyboard: Enter+Shift to send comment
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && e.shiftKey && document.activeElement===document.getElementById('commentInput')){
+    e.preventDefault();
+    sendComment();
+  }
+});
+
 // ── DATA ──
 function parseCSV(text){
   const lines=text.trim().split('\n');
@@ -684,12 +908,17 @@ function renderAll(){
     const stColor=estadoColor(idea.estado);
     const stLabel=estadoLabel(idea.estado);
     const contenidoDisplay=isUrl(idea.contenido)?`<a href="${idea.contenido}" target="_blank" style="color:var(--blue);text-decoration:none" onclick="event.stopPropagation()">${idea.contenido}</a>`:idea.contenido;
+    const lc = idea.lastComment;
+    const commentCell = lc && lc.text
+      ? `<div class="comment-preview" onclick="event.stopPropagation();openCommentModal(${idea.id},event)">${lc.text}</div><div class="comment-author">${lc.author} · ${lc.time}</div>`
+      : `<span class="comment-empty" onclick="event.stopPropagation();openCommentModal(${idea.id},event)">+ agregar comentario</span>`;
     return `<tr onclick="openStatusModal(${idea.id},event)">
       <td class="idea-text"><span title="${idea.contenido}">${contenidoDisplay}</span></td>
       <td><span class="cat-badge-sm" style="background:color-mix(in srgb,${color} 12%,transparent);color:${color}">${CAT_NAMES[p]||idea.categoria}</span></td>
       <td><span class="badge" style="background:color-mix(in srgb,${stColor} 10%,transparent);color:${stColor}"><span class="status-dot" style="background:${stColor}"></span>${stLabel}</span></td>
       <td style="color:var(--text3);font-family:var(--mono);font-size:9.5px;white-space:nowrap">${idea.fecha}</td>
       <td style="color:var(--text3);font-family:var(--mono);font-size:9.5px;white-space:nowrap">${idea.fechaFin||'—'}</td>
+      <td class="comment-cell" onclick="event.stopPropagation()">${commentCell}</td>
       <td onclick="event.stopPropagation()"><div class="action-cell"><button class="act-btn" onclick="openStatusModal(${idea.id},event)" style="color:var(--navy);border-color:var(--navy)">Estado</button></div></td>
     </tr>`;
   }).join('');
@@ -747,6 +976,7 @@ function renderTimeline(){
                 <span class="tl-event-time">${formatTs(ev.ts)}</span>
               </div>
               ${ev.nota?`<div class="tl-event-note">${ev.nota}</div>`:''}
+              ${ev.comment?`<div class="tl-event-comment">${ev.comment}</div>`:''}
             </div>`).join('')}
         </div>
       </div>` : '';
