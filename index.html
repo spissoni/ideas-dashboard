@@ -464,9 +464,9 @@ const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzQB-P3gUYncCLN9s
 
 
 // ── CLICKUP CONFIG ──
-const CLICKUP_API_KEY = 'pk_43073493_GXJTEDZ1QIOGPBW66T3T08OLLHWT0A3P'; // Settings → Apps → API Token
+// CLICKUP_API_KEY is stored securely in Netlify environment variables
 const CLICKUP_LIST_ID = '1000440000002954';
-const CLICKUP_BASE = 'https://api.clickup.com/api/v2';
+const PROXY_URL = 'https://courageous-blini-ea8269.netlify.app/.netlify/functions/clickup';
 
 const CAT_NAMES={p:'Proyectos clientes',c:'Clientes nuevos',x:'Empresa / producto',e:'Equipo',l:'Liderazgo',yo:'Personal',f:'Futsal / Kimberley',u:'UNSAM / Handball',v:'Ver / leer',general:'General'};
 const CAT_COLORS={p:'var(--cat-p)',c:'var(--cat-c)',x:'var(--cat-x)',e:'var(--cat-e)',l:'var(--cat-l)',yo:'var(--cat-yo)',f:'var(--cat-f)',u:'var(--cat-u)',v:'var(--cat-v)',general:'var(--cat-general)'};
@@ -620,25 +620,33 @@ let cuTaskCache = {}; // ideaId → clickup task_id
 async function findOrCreateCUTask(idea){
   if(cuTaskCache[idea.id]) return cuTaskCache[idea.id];
   try{
-    // Search existing tasks by name
-    const searchRes = await fetch(`${CLICKUP_BASE}/list/${CLICKUP_LIST_ID}/task?query=${encodeURIComponent(idea.contenido.substring(0,50))}&limit=10`,{
-      headers:{'Authorization':CLICKUP_API_KEY,'Content-Type':'application/json'}
+    // Search existing tasks by name via proxy
+    const searchRes = await fetch(PROXY_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        method:'GET',
+        path:`/list/${CLICKUP_LIST_ID}/task?query=${encodeURIComponent(idea.contenido.substring(0,50))}&limit=10`
+      })
     });
     const searchData = await searchRes.json();
     if(searchData.tasks && searchData.tasks.length > 0){
-      // Find exact match
       const match = searchData.tasks.find(t => t.name === idea.contenido || t.name.startsWith(idea.contenido.substring(0,40)));
       if(match){ cuTaskCache[idea.id]=match.id; return match.id; }
     }
-    // Create new task
-    const createRes = await fetch(`${CLICKUP_BASE}/list/${CLICKUP_LIST_ID}/task`,{
+    // Create new task via proxy
+    const createRes = await fetch(PROXY_URL, {
       method:'POST',
-      headers:{'Authorization':CLICKUP_API_KEY,'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        name: idea.contenido.substring(0,200),
-        description: `Categoría: ${CAT_NAMES[idea.prefijo]||idea.categoria}\nFecha: ${idea.fecha}`,
-        tags: [idea.prefijo||'general'],
-        status: 'to do'
+        method:'POST',
+        path:`/list/${CLICKUP_LIST_ID}/task`,
+        body:{
+          name: idea.contenido.substring(0,200),
+          description: `Categoría: ${CAT_NAMES[idea.prefijo]||idea.categoria}\nFecha: ${idea.fecha}`,
+          tags: [idea.prefijo||'general'],
+          status: 'to do'
+        }
       })
     });
     const createData = await createRes.json();
@@ -649,8 +657,10 @@ async function findOrCreateCUTask(idea){
 
 async function loadCUComments(taskId){
   try{
-    const res = await fetch(`${CLICKUP_BASE}/task/${taskId}/comment`,{
-      headers:{'Authorization':CLICKUP_API_KEY}
+    const res = await fetch(PROXY_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({method:'GET', path:`/task/${taskId}/comment`})
     });
     const data = await res.json();
     return data.comments || [];
@@ -658,10 +668,10 @@ async function loadCUComments(taskId){
 }
 
 async function postCUComment(taskId, text){
-  const res = await fetch(`${CLICKUP_BASE}/task/${taskId}/comment`,{
+  const res = await fetch(PROXY_URL, {
     method:'POST',
-    headers:{'Authorization':CLICKUP_API_KEY,'Content-Type':'application/json'},
-    body: JSON.stringify({comment_text: text})
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({method:'POST', path:`/task/${taskId}/comment`, body:{comment_text: text}})
   });
   return await res.json();
 }
@@ -686,10 +696,7 @@ async function openCommentModal(ideaId, e){
   document.getElementById('commentOverlay').classList.add('open');
   document.getElementById('commentInput').value='';
 
-  if(CLICKUP_API_KEY === 'PEGA_TU_API_KEY_AQUI'){
-    document.getElementById('commentList').innerHTML = '<div class="comment-empty-state">⚠️ Configurá tu API Key de ClickUp en el archivo</div>';
-    return;
-  }
+  // API Key is handled server-side by Netlify function
 
   const taskId = await findOrCreateCUTask(idea);
   if(!taskId){
